@@ -80,9 +80,12 @@ class FlightPlan {
         return going.price + back.price;
     }
 
-    public String toString() {
-        return "Departing:\n\n" + going.toString2() + "\n\nReturning:\n\n" + back.toString2() + "\n" +
-                "\nTotal Trip Cost: $" + this.getCost();
+    public String toString(LocalDate departureDate, LocalDate arrivalDate) {
+        return "Departing:\n\n" + going.toString2() + "\n" + "Departs: " + departureDate + "\n"
+                + (going.days > 0 ? "Note: Flight arrives on " + departureDate.plusDays(1) : "")
+                + "\n\nReturning:\n\n" + back.toString2() + "\n" + "Arrives: " + arrivalDate + "\n"
+                + (back.days > 0 ? "Note: Flight departs on " + arrivalDate.minusDays(1) : "")
+                + "\n\nTotal Trip Cost: $" + this.getCost();
     }
 }
 
@@ -91,7 +94,7 @@ public class main {
     private static final ArrayList<Flight> flights = new ArrayList<>();
 
     public static void main(String[] args) {
-        System.out.println("hi");
+        System.out.println("Hello! This app will help you to choose your flights!");
         try {
             FileInputStream file = new FileInputStream(NAME);
             Workbook workbook = new XSSFWorkbook(file);
@@ -180,6 +183,9 @@ public class main {
             System.out.println("Option:    " + "Flight Details:");
             for (Flight f : departingFlight) {
                 System.out.println(index + ".         " + f.toString());
+                if (f.days > 0) {
+                    System.out.println("          " + " Note: Flight arrives on " + departureDate.plusDays(1));
+                }
                 index++;
             }
             System.out.println("Enter departing option (eg. 1): ");
@@ -190,10 +196,10 @@ public class main {
 
             LocalDate earliestReturnDate = departureDate.plusDays(135);
             LocalDate latestReturnDate = LocalDate.parse("2023-01-07");
-            System.out.println("Enter return date (after " + earliestReturnDate + " and before " + latestReturnDate + "):");
+            System.out.println("\nEnter return date (after " + earliestReturnDate + " and before " + latestReturnDate + "):");
             LocalDate returnDate = LocalDate.parse(scanner.next());
             while (returnDate.isBefore(earliestReturnDate) || returnDate.isAfter(latestReturnDate)) {
-                System.out.println("Enter return date (after " + earliestReturnDate + " and before " + latestReturnDate + "):");
+                System.out.println("\nEnter return date (after " + earliestReturnDate + " and before " + latestReturnDate + "):");
                 returnDate = LocalDate.parse(scanner.next());
             }
             Integer arrivalDay = returnDate.getDayOfWeek().getValue();
@@ -201,7 +207,16 @@ public class main {
             List<Flight> returningFlight = flights.stream().filter(i -> i.schedule.contains(arrivalDay))
                     .filter(j -> j.arrival.equals("Singapore"))
                     .filter(k -> k.departure.equals("Incheon"))
+                    .filter(l -> l.days < 1)
                     .collect(Collectors.toList());
+            LocalDate previousReturn = returnDate.minusDays(1);
+            Integer prevArrivalDay = previousReturn.getDayOfWeek().getValue();
+            List<Flight> returnPreviousDay = flights.stream().filter(i -> i.schedule.contains(prevArrivalDay))
+                    .filter(j -> j.arrival.equals("Singapore"))
+                    .filter(k -> k.departure.equals("Incheon"))
+                    .filter(l -> l.days == 1)
+                    .collect(Collectors.toList());
+            returningFlight.addAll(returnPreviousDay);
             if (priority == 1) {
                 returningFlight.sort(Comparator.comparing(a -> a.price));
             } else {
@@ -210,6 +225,9 @@ public class main {
             index = 1;
             for (Flight f : returningFlight) {
                 System.out.println(index + ".         " + f.toString());
+                if (f.days > 0) {
+                    System.out.println("          " + " Note: Flight departs on " + previousReturn);
+                }
                 index++;
             }
             System.out.println("Select return option (eg. 1): ");
@@ -223,7 +241,7 @@ public class main {
                 System.out.println("\nProcessing...\n");
             }
             System.out.println("Here is your itinerary:");
-            System.out.println(plan.toString());
+            System.out.println(plan.toString(departureDate, returnDate));
         } catch (Exception e) {
             System.out.println("Whoops! Something went wrong, please try again!");
         }
