@@ -18,6 +18,7 @@ class Flight {
     List<Integer> schedule;
     Integer price;
     Integer days;
+    Long flightTime;
 
     public Flight(String flightNumber, String departure, String arrival, LocalTime departureTime, LocalTime arrivalTime,
                   List<Integer> schedule, Integer price, Integer days) {
@@ -29,6 +30,7 @@ class Flight {
         this.schedule = schedule;
         this.price = price;
         this.days = days;
+        setFlightTime();
     }
 
     @Override
@@ -50,12 +52,15 @@ class Flight {
                 "Price: " + this.price;
     }
 
-    public long getFlightTime() {
+    public void setFlightTime() {
         if (days == 1) {
-            LocalTime midnight = LocalTime.parse("00:00", DateTimeFormatter.ofPattern("H:m"));
-            return departureTime.until(midnight, ChronoUnit.MINUTES) + midnight.until(arrivalTime, ChronoUnit.MINUTES);
+            LocalTime beforeMidnight = LocalTime.parse("23:59", DateTimeFormatter.ofPattern("H:m"));
+            LocalTime afterMidnight = LocalTime.parse("00:00", DateTimeFormatter.ofPattern("H:m"));
+            this.flightTime = departureTime.until(beforeMidnight, ChronoUnit.MINUTES)
+                    + afterMidnight.until(arrivalTime, ChronoUnit.MINUTES) + 1;
+            return;
         }
-        return departureTime.until(arrivalTime, ChronoUnit.MINUTES);
+        this.flightTime = departureTime.until(arrivalTime, ChronoUnit.MINUTES);
     }
 
 }
@@ -172,7 +177,7 @@ public class main {
             if (priority == 1) {
                 departingFlight.sort(Comparator.comparing(a -> a.price));
             } else {
-                departingFlight.sort(Comparator.comparing(Flight::getFlightTime));
+                departingFlight.sort(Comparator.comparing(a -> a.flightTime));
             }
             int index = 1;
             System.out.println("Option:    " + "Flight Details:");
@@ -215,7 +220,7 @@ public class main {
             if (priority == 1) {
                 returningFlight.sort(Comparator.comparing(a -> a.price));
             } else {
-                returningFlight.sort(Comparator.comparing(Flight::getFlightTime));
+                returningFlight.sort(Comparator.comparing(a -> a.flightTime));
             }
             index = 1;
             for (Flight f : returningFlight) {
