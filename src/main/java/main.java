@@ -158,7 +158,7 @@ public class main {
             System.out.println("Finding flights to Korea (Incheon)!!\n");
             System.out.println("Select Priority: ");
             System.out.println("1 = cost");
-            System.out.println("2 = time");
+            System.out.println("2 = flight time");
             System.out.println("Enter selection:");
             Integer priority = scanner.nextInt();
             System.out.println("Enter Departure Date (yyyy-mm-dd):");
