@@ -234,7 +234,7 @@ public class main {
             Integer selectionReturn = scanner.nextInt();
             plan.setBack(returningFlight.get(selectionReturn - 1));
             System.out.println("Selected return flight:\n");
-            System.out.println(plan.going.toString2());
+            System.out.println(plan.back.toString2());
 
 
             for (int i = 0; i < 3; i++) {
